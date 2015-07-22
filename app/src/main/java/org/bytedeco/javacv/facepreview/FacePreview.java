@@ -66,6 +66,7 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.List;
 import org.bytedeco.javacpp.Loader;
@@ -120,10 +121,23 @@ class FaceView extends View implements Camera.PreviewCallback {
     public FaceView(FacePreview context) throws IOException {
         super(context);
 
+        /*
+        // Load the classifier file from the internet
+        URL url = new
+                URL("https://raw.github.com/Itseez/opencv/2.4.0/data/haarcascades/haarcascade_frontalface_alt.xml");
+        File classifierFile = Loader.extractResource(url, null, "classifier", ".xml");
+        */
+
         // Load the classifier file from Java resources.
-        File classifierFile = Loader.extractResource(getClass(),
-                "/org/bytedeco/javacv/facepreview/haarcascade_frontalface_alt.xml",
-                context.getCacheDir(), "classifier", ".xml");
+        String[] paths = {"/haarcascade_frontalface_alt.xml"};
+        File classifierFile = null;
+        for (String path : paths) {
+            classifierFile = Loader.extractResource(getClass(),
+                    path, context.getCacheDir(), "classifier", ".xml");
+            if (classifierFile != null && classifierFile.length() > 0) {
+                break;
+            }
+        }
         if (classifierFile == null || classifierFile.length() <= 0) {
             throw new IOException("Could not extract the classifier file from Java resource.");
         }
@@ -180,7 +194,7 @@ class FaceView extends View implements Camera.PreviewCallback {
 
         String s = "FacePreview - This side up.";
         float textWidth = paint.measureText(s);
-        canvas.drawText(s, (getWidth()-textWidth)/2, 20, paint);
+        canvas.drawText(s, (getWidth() - textWidth) / 2, 20, paint);
 
         if (faces != null) {
             paint.setStrokeWidth(2);
